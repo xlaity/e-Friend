@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <packaging>pom</packaging>
+    <modules>
+        <module>tanhua-commons</module>
+        <module>tanhua-domain</module>
+        <module>tanhua-dubbo</module>
+        <module>tanhua-server</module>
+        <module>tanhua-manage</module>
+        <module>tanhua-recommend</module>
+    </modules>
+
+
+    <!--1. 指定SpringBoot继承的父项目-->
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>2.1.6.RELEASE</version>
+    </parent>
+
+    <groupId>com.tanhua</groupId>
+    <artifactId>tanhua</artifactId>
+    <version>1.0-SNAPSHOT</version>
+
+
+    <!--2. 统一定义版本，通过${标签名称}引用标签-->
+    <properties>
+        <!-- mysql驱动包，覆盖默认版本号 -->
+        <mysql.version>5.1.47</mysql.version>
+        <!-- mybatis-plus启动器 -->
+        <mybatis.mybatis-plus>3.4.0</mybatis.mybatis-plus>
+        <!-- rocketmq启动器 -->
+        <rocketmq-version>2.0.2</rocketmq-version>
+        <!-- dubbo启动器 -->
+        <dubbo.version>2.7.5</dubbo.version>
+        <!-- curator -->
+        <curator.version>4.2.0</curator.version>
+        <!-- zookeeper -->
+        <zookeeper.version>3.4.12</zookeeper.version>
+        <!-- fastjson -->
+        <fastjson.version>1.2.8</fastjson.version>
+        <!-- 阿里云核心包 -->
+        <aliyun-sdk-core>4.0.6</aliyun-sdk-core>
+        <!-- 阿里云短信包 -->
+        <aliyun-sdk-dysmsapi>1.1.0</aliyun-sdk-dysmsapi>
+        <!-- 阿里云OSS存储 -->
+        <aliyun-sdk-oss>3.10.2</aliyun-sdk-oss>
+        <!-- 百度人脸识别API -->
+        <baidu.aip.sdk>4.8.0</baidu.aip.sdk>
+        <!--jwt-->
+        <jwt.version>0.9.1</jwt.version>
+    </properties>
+
+    <!--3. 版本锁定：统一定义组件的版本，子项目继承父项目还需要添加依赖只是不用指定版本-->
+    <dependencyManagement>
+        <dependencies>
+            <!-- mybatis-plus核心包 -->
+            <dependency>
+                <groupId>com.baomidou</groupId>
+                <artifactId>mybatis-plus</artifactId>
+                <version>${mybatis.mybatis-plus}</version>
+            </dependency>
+
+            <!-- mybatis-plus启动器 -->
+            <dependency>
+                <groupId>com.baomidou</groupId>
+                <artifactId>mybatis-plus-boot-starter</artifactId>
+                <version>${mybatis.mybatis-plus}</version>
+            </dependency>
+
+            <!-- RocketMQ启动器 -->
+            <dependency>
+                <groupId>org.apache.rocketmq</groupId>
+                <artifactId>rocketmq-spring-boot-starter</artifactId>
+                <version>${rocketmq-version}</version>
+            </dependency>
+
+            <!-- dubbo启动器 -->
+            <dependency>
+                <groupId>org.apache.dubbo</groupId>
+                <artifactId>dubbo-spring-boot-starter</artifactId>
+                <version>${dubbo.version}</version>
+            </dependency>
+
+            <!-- zookeeper的api管理依赖 -->
+            <dependency>
+                <groupId>org.apache.curator</groupId>
+                <artifactId>curator-recipes</artifactId>
+                <version>${curator.version}</version>
+            </dependency>
+
+            <!-- zookeeper依赖 -->
+            <dependency>
+                <groupId>org.apache.zookeeper</groupId>
+                <artifactId>zookeeper</artifactId>
+                <version>${zookeeper.version}</version>
+            </dependency>
+
+            <!-- jwt -->
+            <dependency>
+                <groupId>io.jsonwebtoken</groupId>
+                <artifactId>jjwt</artifactId>
+                <version>${jwt.version}</version>
+            </dependency>
+
+            <!-- 阿里云核心API -->
+            <dependency>
+                <groupId>com.aliyun</groupId>
+                <artifactId>aliyun-java-sdk-core</artifactId>
+                <version>${aliyun-sdk-core}</version>
+            </dependency>
+
+            <!-- 阿里云短信发送 -->
+            <dependency>
+                <groupId>com.aliyun</groupId>
+                <artifactId>aliyun-java-sdk-dysmsapi</artifactId>
+                <version>${aliyun-sdk-dysmsapi}</version>
+            </dependency>
+
+            <!-- 阿里云oss存储API -->
+            <dependency>
+                <groupId>com.aliyun.oss</groupId>
+                <artifactId>aliyun-sdk-oss</artifactId>
+                <version>${aliyun-sdk-oss}</version>
+            </dependency>
+
+            <!-- 百度人脸识别API -->
+            <dependency>
+                <groupId>com.baidu.aip</groupId>
+                <artifactId>java-sdk</artifactId>
+                <version>${baidu.aip.sdk}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <!--4. 通用依赖-->
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>fastjson</artifactId>
+            <version>${fastjson.version}</version>
+        </dependency>
+    </dependencies>
+
+</project>

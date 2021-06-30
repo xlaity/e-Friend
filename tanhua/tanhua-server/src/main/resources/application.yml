@@ -1,0 +1,58 @@
+server:
+  port: 18080
+dubbo:
+  application:
+    name: tanhua-server
+  registry:
+    address: zookeeper://192.168.12.160:2181
+
+tanhua:
+  # 阿里云短信发送相关配置
+  secret: itcast # jwt密钥
+  sms:
+    signName: 黑马
+    templateCode: SMS_215340021
+    accessKey: LTAINs6bfRqh2vAL
+    secret: BaZMlF9Sr2xdUYtCKaQhhuYKxvlAha
+  oss:
+    accessKey: LTAI5tJwEptLpoT4BbQTWv2f
+    secret: BTOEvdjVJyLBwh6wzZ1F91N2EkitrS
+    bucketName: lk-bukect
+    endpoint: oss-cn-guangzhou.aliyuncs.com
+    url: lk-bukect.oss-cn-guangzhou.aliyuncs.com
+  aip:
+    appId: 24043663
+    apiKey: h2DlasVosTN2MSAstnzoaLWR
+    secretKey: aLwiNZ6cL1sIuNNHfke1Ub56jbOXgv6W
+  huanxin:
+    url: http://a1.easemob.com
+    orgName: 1112210517085184
+    appName: demo
+    clientId: YXA6urppWKqyTF-7AAhBiKonSw
+    clientSecret: YXA6e0AvDabLFBgOq4I6iWZDmMUirvQ
+
+spring:
+  redis:
+    host: 192.168.12.160
+    port: 6379
+  servlet:
+    multipart:
+      max-file-size: 30MB
+      max-request-size: 40MB
+
+fdfs:
+  so-timeout: 1500
+  connect-timeout: 600
+  #缩略图生成参数
+  thumb-image:
+    width: 150
+    height: 150
+  #TrackerList参数,支持多个
+  tracker-list: 192.168.12.160:22122
+  #storage的存储地址
+  web-server-url: http://192.168.12.160:8888/
+
+rocketmq:
+  name-server: 192.168.12.160:9876
+  producer:
+    group: tanhua
