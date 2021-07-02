@@ -7,7 +7,7 @@ spring:
     driver-class-name: com.mysql.jdbc.Driver
     url: jdbc:mysql://127.0.0.1:3306/tanhua-manager?useUnicode=true&characterEncoding=utf8&autoReconnect=true&allowMultiQueries=true&useSSL=false
     username: root
-    password: 123456
+    password: root
   redis:
     host: 192.168.12.160
     port: 6379
