@@ -1,6 +1,8 @@
 package com.tanhua.dubbo.api.impl;
 
 import com.tanhua.domain.mongo.FollowUser;
+import com.tanhua.domain.mongo.Friend;
+import com.tanhua.domain.mongo.UserLike;
 import com.tanhua.domain.mongo.Video;
 import com.tanhua.domain.vo.PageResult;
 import com.tanhua.dubbo.api.VideoApi;
@@ -46,17 +48,71 @@ public class VideoApiImpl implements VideoApi {
         mongoTemplate.save(video);
     }
 
+    /*
+     * 冯伟鑫（修改：增强列表联动）
+     * 视频用户关注
+     * */
     @Override
     public void followUser(FollowUser followUser) {
+
+        //添加关注信息
         mongoTemplate.save(followUser);
+
+        Query query = new Query(Criteria.where("userId").is(followUser.getFollowUserId()).and("likeUserId").is(followUser.getUserId()));
+        //彼此喜欢删除粉丝信息，添加朋友信息
+        if(mongoTemplate.exists(query, UserLike.class)){
+            mongoTemplate.remove(query,UserLike.class);
+
+            Friend friend = new Friend();
+            friend.setUserId(followUser.getUserId());
+            friend.setFriendId(followUser.getFollowUserId());
+            friend.setCreated(followUser.getCreated());
+            mongoTemplate.save(friend);
+
+            Friend friend1 = new Friend();
+            friend1.setUserId(followUser.getFollowUserId());
+            friend1.setFriendId(followUser.getUserId());
+            friend1.setCreated(followUser.getCreated());
+            mongoTemplate.save(friend1);
+        }else {
+            //单方喜欢插入喜欢信息
+            UserLike userLike = new UserLike();
+            userLike.setUserId(followUser.getUserId());
+            userLike.setLikeUserId(followUser.getFollowUserId());
+            userLike.setCreated(followUser.getCreated());
+
+            mongoTemplate.save(userLike);
+        }
     }
 
+    /*
+     * 冯伟鑫（修改：增强列表联动）
+     * 取消视频用户关注
+     * */
     @Override
     public void unfollowUser(Long userId, Long uid) {
-        Query query = new Query(Criteria.where("userId").is(userId)
-                .and("followUserId").is(uid)
-        );
-        mongoTemplate.remove(query, FollowUser.class);
+        //删除关注信息
+        Query query = new Query(Criteria.where("userId").is(userId).and("followUserId").is(uid));
+        mongoTemplate.remove(query,FollowUser.class);
+
+        Query query1 = new Query(Criteria.where("userId").is(userId).and("friendId").is(uid));
+        //取消关注时是朋友则删除朋友信息，插入喜欢信息
+        if(mongoTemplate.exists(query1,Friend.class)){
+            mongoTemplate.remove(query1,Friend.class);
+
+            Query query2 = new Query(Criteria.where("userId").is(uid).and("friendId").is(userId));
+            mongoTemplate.remove(query2,Friend.class);
+
+            UserLike userLike = new UserLike();
+            userLike.setUserId(uid);
+            userLike.setLikeUserId(userId);
+            userLike.setCreated(System.currentTimeMillis());
+            mongoTemplate.save(userLike);
+        }else {
+            //单方喜欢删除喜欢信息
+            Query query2 = new Query(Criteria.where("userId").is(userId).and("likeUserId").is(uid));
+            mongoTemplate.remove(query2,UserLike.class);
+        }
     }
 
     @Override

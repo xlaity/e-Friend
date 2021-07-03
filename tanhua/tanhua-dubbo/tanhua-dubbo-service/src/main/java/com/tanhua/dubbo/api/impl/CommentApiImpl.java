@@ -46,6 +46,7 @@ public class CommentApiImpl implements CommentApi {
         return count;
     }
 
+
     @Override
     public long delete(Comment comment) {
         // 1.删除评论表数据，根据动态id、评论类型（点赞/喜欢）、用户id删除评论数据
@@ -72,10 +73,13 @@ public class CommentApiImpl implements CommentApi {
         return count;
     }
 
+    /*
+    * 冯伟鑫（修改：增加查询条件commentType==2，否则会把点赞与喜欢数据当作评论显示出来）
+    * */
     @Override
     public PageResult queryCommentsList(String movementId, Integer page, Integer pagesize) {
         // 创建查询对象
-        Query query = new Query(Criteria.where("publishId").is(new ObjectId(movementId)));
+        Query query = new Query(Criteria.where("publishId").is(new ObjectId(movementId)).and("commentType").is(2));
         // 指定排序字段
         query.with(Sort.by(Sort.Direction.DESC, "created"));
         // 指定分页参数
@@ -86,6 +90,9 @@ public class CommentApiImpl implements CommentApi {
         return new PageResult(page, pagesize, (int) count, commentList);
     }
 
+    /*
+     * 冯伟鑫（修改：userId不等于当前用户id，否则自己给自己点赞、喜欢、评论也会在消息列表显示，不合理）
+     * */
     @Override
     public PageResult findCommentsByUserId(Long userId, Integer commentType, Integer page, Integer pagesize) {
         // 注意：这里的条件userId是发布者的用户id，而Comment表中只存储了评论人id
@@ -94,10 +101,26 @@ public class CommentApiImpl implements CommentApi {
 
         Query query = new Query(
                 Criteria.where("commentType").is(commentType)
-                        .and("publishUserId").is(userId)
+                        .and("userId").ne(userId).and("publishUserId").is(userId)
         );
         List<Comment> commentList = mongoTemplate.find(query, Comment.class);
         long count = mongoTemplate.count(query, Comment.class);
         return new PageResult(page,pagesize, (int) count,commentList);
+    }
+
+    @Override
+    public long updateComment(String id, Integer flag) {
+        Query query = new Query(Criteria.where("_id").is(id));
+        Update update = new Update();
+        if (flag == 1) {
+            update.inc("likeCount", 1);
+        } else {
+            update.inc("likeCount", -1);
+        }
+        mongoTemplate.updateFirst(query, update, Comment.class);
+
+        Comment comment = mongoTemplate.findOne(query, Comment.class);
+
+        return comment.getLikeCount();
     }
 }

@@ -163,4 +163,30 @@ public class UserLikeApiImpl implements UserLikeApi {
                 .and("likeUserId").is(userId));
         mongoTemplate.remove(query, UserLike.class);
     }
+
+    /*
+    * 冯伟鑫（增加：添加喜欢信息）
+    * */
+    @Override
+    public void addFans(UserLike userLike) {
+        mongoTemplate.save(userLike);
+    }
+
+    /*
+     * 冯伟鑫（增加：删除喜欢信息）
+     * */
+    @Override
+    public void deleteLike(Long userId, Long uid) {
+        Query query = new Query(Criteria.where("userId").is(userId).and("likeUserId").is(uid));
+        mongoTemplate.remove(query,UserLike.class);
+    }
+
+    /*
+     * 冯伟鑫（增加：判断是否是粉丝）
+     * */
+    @Override
+    public boolean isFans(Long userId, Long likeUserId) {
+        Query query = new Query(Criteria.where("userId").is(likeUserId).and("likeUserId").is(userId));
+        return mongoTemplate.exists(query,UserLike.class);
+    }
 }

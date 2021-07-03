@@ -38,4 +38,10 @@ public interface CommentApi {
      */
     PageResult findCommentsByUserId(Long userId, Integer commentType, Integer page, Integer pagesize);
 
+    /**
+     * @param id
+     * @param flag
+     * @return
+     */
+    long updateComment(String id, Integer flag);
 }

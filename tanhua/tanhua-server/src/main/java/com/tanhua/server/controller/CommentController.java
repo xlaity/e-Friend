@@ -32,6 +32,7 @@ public class CommentController {
     }
 
     /**
+     * 冯伟鑫（有改动，增加参数标志对动态还是视频进行评论）
      * 接口名称：评论-提交
      * 接口路径：POST/comments
      */
@@ -40,6 +41,27 @@ public class CommentController {
         log.info("接口名称：评论-提交");
         String movementId = map.get("movementId");
         String comment = map.get("comment");
-        return commentService.saveComments(movementId, comment);
+        return commentService.saveComments(movementId, comment,1);
+    }
+
+    /*
+    * 冯伟鑫（增加）
+    * 接口名称：评论-点赞
+    * 接口路径：GET/comments/:id/like
+    */
+    @GetMapping("{id}/like")
+    public ResponseEntity<Object> likeContent(@PathVariable("id") String id){
+        return commentService.Content(id,1);
+    }
+
+
+    /*
+    * 冯伟鑫（增加）
+    * 接口名称：评论-取消点赞
+    * 接口路径：GET/comments/:id/dislike
+    */
+    @GetMapping("{id}/dislike")
+    public ResponseEntity disLikeContent(@PathVariable("id") String id){
+        return commentService.Content(id,0);
     }
 }
