@@ -178,6 +178,7 @@ public class TestSoulFileTest {
         /*String fileName = "D:\\2.jpg";
         File file = new File(fileName);
         String url = ossTemplate.upload(fileName, new FileInputStream(file));*/
+        //固定图片链接，不做更改
         String url = "https://lk-bukect.oss-cn-guangzhou.aliyuncs.com/images/2021/07/03/cefdebc2-f396-4b09-83a4-286c87beac56.jpg";
         testSoulFile.setCover(url);
         testSoulFile.setLevel("中级");
