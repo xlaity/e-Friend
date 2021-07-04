@@ -15,6 +15,7 @@ import com.tanhua.dubbo.api.PublishApi;
 import com.tanhua.dubbo.api.UserInfoApi;
 import com.tanhua.dubbo.api.VideoApi;
 import com.tanhua.manage.utils.RelativeDateFormat;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.dubbo.config.annotation.Reference;
 import org.joda.time.DateTime;
 import org.springframework.beans.BeanUtils;
@@ -22,9 +23,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 @Service
 public class UserService {
@@ -102,14 +101,40 @@ public class UserService {
         return ResponseEntity.ok(pageResult);
     }
 
+
+    /**
+     * lwh
+     * 接口名称：动态分页
+     */
     public ResponseEntity<Object> findMovementsList(Integer page, Integer pagesize, Long uid, Long state) {
-        // 1.调用服务提供者分页查询该用户的个人动态
-        PageResult pageResult = publishApi.queryMyPublishList(page, pagesize, uid);
+        if (uid != null) {
+            // 1.调用服务提供者分页查询该用户的个人动态
+            PageResult pageResult = publishApi.queryMyPublishList(page, pagesize, uid);
+
+            // 2.调用公共方法，设置返回结果
+            setMovementsVo(pageResult);
+
+            return ResponseEntity.ok(pageResult);
+        } else if (state != null) {
+
+            // 1.调用服务提供者分页查询不同的审核状态
+            PageResult pageResult = publishApi.findByState(page, pagesize, state);
+
+            // 2.调用公共方法，设置返回结果
+            setMovementsVo(pageResult);
+
+            return ResponseEntity.ok(pageResult);
+
+        }
+
+        // 1.调用服务提供者分页查询所有动态
+        PageResult pageResult = publishApi.finByAll(page, pagesize);
 
         // 2.调用公共方法，设置返回结果
         setMovementsVo(pageResult);
 
         return ResponseEntity.ok(pageResult);
+
     }
 
     /**
@@ -228,5 +253,43 @@ public class UserService {
         }
         pageResult.setItems(voList);
         return ResponseEntity.ok(pageResult);
+    }
+
+    /**
+     * lwh
+     * 动态通过
+     */
+    public ResponseEntity<Object> updatePass(List<String> publishIdList) {
+        String message = "false";
+        if (publishIdList.size() != 0) {
+            for (String publishId : publishIdList) {
+                publishApi.updateState(publishId, 1);
+            }
+            message = "true";
+        }
+
+        Map<String, String> resultMap = new HashMap<>();
+        resultMap.put("message", message);
+        return ResponseEntity.ok(resultMap);
+    }
+
+
+    /**
+     * lwh
+     * 接口名称：动态拒绝
+     */
+    public ResponseEntity<Object> updateReject(List<String> publishIdList) {
+        String message = "false";
+        if (publishIdList.size() != 0) {
+            for (String publishId : publishIdList) {
+                publishApi.updateState(publishId, 2);
+            }
+            message = "true";
+        }
+
+        Map<String, String> resultMap = new HashMap<>();
+        resultMap.put("message", message);
+        return ResponseEntity.ok(resultMap);
+
     }
 }

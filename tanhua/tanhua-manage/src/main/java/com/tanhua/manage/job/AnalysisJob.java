@@ -15,7 +15,7 @@ public class AnalysisJob {
     private AnalysisByDayService analysisByDayService;
 
     //    @Scheduled(cron = "* 0/5 * * * ?")  // 每隔5分钟执行一次
-    @Scheduled(cron = "0/5 * * * * ?")  // 每隔5秒执行一次
+   // @Scheduled(cron = "0/5 * * * * ?")  // 每隔5秒执行一次
     public void analysis() {
         log.info("执行统计开始：--------->");
         analysisByDayService.anasysis();

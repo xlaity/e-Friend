@@ -5,6 +5,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 @RestController
 @RequestMapping("manage")
 public class UserController {
@@ -17,7 +21,7 @@ public class UserController {
      * 接口路径：GET/manage/users
      */
     @GetMapping("users")
-    public ResponseEntity<Object> findByPage(Integer page, Integer pagesize){
+    public ResponseEntity<Object> findByPage(Integer page, Integer pagesize) {
         return userService.findByPage(page, pagesize);
     }
 
@@ -26,7 +30,7 @@ public class UserController {
      * 接口路径：GET/manage/users/:userID
      */
     @GetMapping("users/{userID}")
-    public ResponseEntity<Object> findById(@PathVariable("userID") Long userId){
+    public ResponseEntity<Object> findById(@PathVariable("userID") Long userId) {
         return userService.findById(userId);
     }
 
@@ -37,7 +41,7 @@ public class UserController {
     @GetMapping("videos")
     public ResponseEntity<Object> findVideosList(Integer page,
                                                  Integer pagesize,
-                                                 Long uid){
+                                                 Long uid) {
         return userService.findVideosList(page, pagesize, uid);
     }
 
@@ -48,8 +52,12 @@ public class UserController {
     @GetMapping("messages")
     public ResponseEntity<Object> findMovementsList(
             @RequestParam(defaultValue = "1") Integer page,
-            @RequestParam(defaultValue = "10") Integer pagesize, Long uid, Long state){
-        return userService.findMovementsList(page, pagesize, uid, state);
+            @RequestParam(defaultValue = "10") Integer pagesize, Long uid,String state) {
+        if (state.length() == 0 || state.equals("''")){
+            return userService.findMovementsList(page, pagesize, uid,null);
+        }else{
+            return userService.findMovementsList(page, pagesize, uid, Long.valueOf(state));
+        }
     }
 
     /**
@@ -57,7 +65,7 @@ public class UserController {
      * 接口路径：GET/manage/messages/:id
      */
     @GetMapping("/messages/{id}")
-    public ResponseEntity<Object> findMovementsById(@PathVariable("id") String publishId){
+    public ResponseEntity<Object> findMovementsById(@PathVariable("id") String publishId) {
         return userService.findMovementsById(publishId);
     }
 
@@ -69,7 +77,28 @@ public class UserController {
     public ResponseEntity<Object> findCommentsById(
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer pagesize,
-            @RequestParam(name = "messageID") String publishId){
+            @RequestParam(name = "messageID") String publishId) {
         return userService.findCommentsById(publishId, page, pagesize);
     }
+
+    /**
+     * lwh
+     * 接口名称：动态通过
+     * 接口路径：POST/manage/messages/pass
+     */
+    @PostMapping("messages/pass")
+    public ResponseEntity<Object> updatePass(@RequestBody List<String> publishIdList) {
+        return userService.updatePass(publishIdList);
+    }
+
+    /**
+     * 接口名称：动态拒绝
+     * 接口路径：POST/manage/messages/reject
+     */
+    @PostMapping("messages/reject")
+    public ResponseEntity<Object> updateReject(@RequestBody List<String> publishIdList) {
+        return userService.updateReject(publishIdList);
+    }
+
+
 }
