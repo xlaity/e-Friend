@@ -1,6 +1,7 @@
 package com.tanhua.manage.controller;
 
 import com.tanhua.manage.service.UserService;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -52,10 +53,10 @@ public class UserController {
     @GetMapping("messages")
     public ResponseEntity<Object> findMovementsList(
             @RequestParam(defaultValue = "1") Integer page,
-            @RequestParam(defaultValue = "10") Integer pagesize, Long uid,String state) {
-        if (state.length() == 0 || state.equals("''")){
-            return userService.findMovementsList(page, pagesize, uid,null);
-        }else{
+            @RequestParam(defaultValue = "10") Integer pagesize, Long uid, String state) {
+        if (StringUtils.isEmpty(state) || state.equals("''")) {
+            return userService.findMovementsList(page, pagesize, uid, null);
+        } else {
             return userService.findMovementsList(page, pagesize, uid, Long.valueOf(state));
         }
     }
@@ -101,4 +102,13 @@ public class UserController {
     }
 
 
+    /**
+     * lwh
+     *接口名称：动态审核撤销
+     *接口路径：POST/manage/messages/revocation
+     */
+    @PostMapping("messages/revocation")
+    public ResponseEntity<Object> revocation(@RequestBody List<String> publishIdList) {
+        return userService.revocation(publishIdList);
+    }
 }

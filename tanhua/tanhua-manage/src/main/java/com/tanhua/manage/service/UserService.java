@@ -173,6 +173,19 @@ public class UserService {
                 vo.setCreateDate(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date(publish.getCreated())));
                 vo.setId(publish.getId().toString());
 
+                /**
+                 * lwh
+                 */
+
+                if(publish.getState()==0){
+                    vo.setState("3");
+                }else if(publish.getState()==1){
+                    vo.setState("5");
+                }else if(publish.getState()==2){
+                    vo.setState("4");
+                }
+
+
                 // 3.6 添加vo对象
                 voList.add(vo);
             }
@@ -283,6 +296,27 @@ public class UserService {
         if (publishIdList.size() != 0) {
             for (String publishId : publishIdList) {
                 publishApi.updateState(publishId, 2);
+            }
+            message = "true";
+        }
+
+        Map<String, String> resultMap = new HashMap<>();
+        resultMap.put("message", message);
+        return ResponseEntity.ok(resultMap);
+
+    }
+
+
+
+    /**
+     * lwh
+     * 接口名称：动态撤销
+     */
+    public ResponseEntity<Object> revocation(List<String> publishIdList) {
+        String message = "false";
+        if (publishIdList.size() != 0) {
+            for (String publishId : publishIdList) {
+                publishApi.updateState(publishId, 0);
             }
             message = "true";
         }

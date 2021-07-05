@@ -31,4 +31,7 @@ public class MovementsVo  implements Serializable {
 
     private Integer hasLiked; //是否点赞（1是，0否）
     private Integer hasLoved; //是否喜欢（1是，0否）
+
+
+    private String state;
 }
