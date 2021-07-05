@@ -1,5 +1,6 @@
 package com.tanhua.dubbo.api.impl;
 
+import com.baomidou.mybatisplus.extension.api.R;
 import com.mongodb.client.result.DeleteResult;
 import com.tanhua.domain.mongo.Voice;
 import com.tanhua.domain.vo.VoiceVo;
@@ -51,7 +52,7 @@ public class VoiceApiImpl implements VoiceApi {
         Query query = new Query(Criteria.where("userId").ne(userId));
         List<Voice> voices = mongoTemplate.find(query, Voice.class);
         if (voices == null || voices.size() == 0) {
-            throw new RuntimeException("没有语音数据");
+            return null;
         } else {
             List<Integer> voIds = new ArrayList<>();
             for (Voice voice : voices) {

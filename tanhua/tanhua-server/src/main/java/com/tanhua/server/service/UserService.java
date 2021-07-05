@@ -430,6 +430,11 @@ public class UserService {
         return ResponseEntity.ok(null);
     }
 
+    /**
+     * 江杰
+     * @Params:
+     * @Return
+     */
     //桃花传音喜欢不喜欢
     public ResponseEntity<Object> love(Long id) {
         Long userId = UserHolder.getUserId();
@@ -457,6 +462,11 @@ public class UserService {
        return ResponseEntity.ok(null);
     }
 
+    /**
+     * 江杰
+     * @Params:
+     * @Return
+     */
     //删除桃花传音语言
     public ResponseEntity<Object> unlove(Long id) {
         //直接删除缓存的数据

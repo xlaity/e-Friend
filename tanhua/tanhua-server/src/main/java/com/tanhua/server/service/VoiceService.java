@@ -21,6 +21,7 @@ import org.apache.dubbo.config.annotation.Reference;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -54,7 +55,7 @@ public class VoiceService {
     @Reference
     private UserSumApi userSumApi;
     @Autowired
-    private RedisTemplate<String,String>redisTemplate;
+    private RedisTemplate<String,String> redisTemplate;
 
     /**
      * 江杰
@@ -65,7 +66,7 @@ public class VoiceService {
     //上传语音功能
     public ResponseEntity<Object> save(MultipartFile soundFile) throws Exception {
         if (soundFile == null) {
-            return ResponseEntity.status(500).body("数据发送异常");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("数据发送异常");
         } else {
             //将语音文件上传到fastDFS
             String originalFilename = soundFile.getOriginalFilename();
@@ -86,7 +87,6 @@ public class VoiceService {
             return ResponseEntity.ok(null);
         }
     }
-
     /**
      * 江杰
      *
@@ -98,7 +98,7 @@ public class VoiceService {
         //首先查询所有//不能是自己发的语音
         List<Integer> voIds = voiceApi.findAll(UserHolder.getUserId());
         if (voIds == null || voIds.size() == 0) {
-            return ResponseEntity.status(500).body("没有发现桃花语音");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("没有发现桃花语音");
         } else {
             //随机数获取void
             Random ra = new Random();
@@ -108,14 +108,14 @@ public class VoiceService {
             //获取用户消息和语音消息
             Voice voice = voiceApi.findOne(integer, UserHolder.getUserId());
             if (voice == null) {
-                return ResponseEntity.status(500).body("没有相关语音信息");
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("没有相关语音信息");
             } else {
                 VoiceVo voiceVo = new VoiceVo();
                 //查询用户信息
                 Long userId = voice.getUserId();
                 UserInfo userInfo = userInfoApi.findById(userId);
                 if (userInfo == null) {
-                    return ResponseEntity.status(500).body("当前用户不存在");
+                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("当前用户不存在");
                 }
                 //封装之前需要查询用户能够访问的次数
                 UserSum userSum = userSumApi.findOne(UserHolder.getUserId());
@@ -128,7 +128,7 @@ public class VoiceService {
                     userSumApi.save(userSum1);
                 }
                 if (userSumApi.findOne(UserHolder.getUserId()).getUserNum() == 0) {
-                    return ResponseEntity.status(403).body("今日上限，不能获取");
+                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("今日上限，不能获取");
                 } else {
                     //封装数据
                     BeanUtils.copyProperties(userInfo, voiceVo);

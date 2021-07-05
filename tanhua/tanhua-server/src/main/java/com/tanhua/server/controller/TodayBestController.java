@@ -84,12 +84,22 @@ public class TodayBestController {
     public ResponseEntity<Object> searchNear(String gender, Long distance){
         return todayBestService.searchNear(gender, distance);
     }
+    /**
+     * 江杰
+    * @Params:
+    * @Return
+    */
     //桃花传音-喜欢
     @GetMapping("{id}/love")
     public ResponseEntity<Object> love(@PathVariable("id") Long id){
         System.out.println(id);
         return userService.love(id);
     }
+    /**
+     * 江杰
+     * @Params:
+     * @Return
+     */
     //桃花传音-不喜欢
     @GetMapping("{id}/unlove")
     public ResponseEntity<Object> unlove(@PathVariable("id") Long id){
