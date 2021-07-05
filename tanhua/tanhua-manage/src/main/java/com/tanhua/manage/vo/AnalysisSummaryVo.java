@@ -46,4 +46,6 @@ public class AnalysisSummaryVo {
      * 今日活跃用户涨跌率，单位百分数，正数为涨，负数为跌
      */
     private BigDecimal activeUsersTodayRate;
+    private String title;//日期
+    private Integer amount;//数量
 }

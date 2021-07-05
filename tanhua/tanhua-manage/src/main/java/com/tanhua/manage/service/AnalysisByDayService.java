@@ -1,27 +1,39 @@
 package com.tanhua.manage.service;
-import java.math.BigDecimal;
 
+import cn.hutool.core.date.DateField;
+import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.io.unit.DataUnit;
+import cn.hutool.core.map.MapUtil;
 import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.tanhua.domain.db.UserInfo;
 import com.tanhua.manage.domain.AnalysisByDay;
 import com.tanhua.manage.mapper.AnalysisByDayMapper;
 import com.tanhua.manage.mapper.LogMapper;
 import com.tanhua.manage.utils.ComputeUtil;
 import com.tanhua.manage.vo.AnalysisSummaryVo;
+import com.tanhua.manage.vo.AnalysisUserVo;
+import com.tanhua.manage.vo.DateVo;
+import org.checkerframework.checker.units.qual.A;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class AnalysisByDayService extends ServiceImpl<AnalysisByDayMapper, AnalysisByDay> {
 
     @Autowired
     private LogMapper logMapper;
+    @Autowired
+    private AnalysisByDayMapper analysisByDayMapper;
 
     /**
      * 接口名称：概要统计信息
@@ -129,4 +141,150 @@ public class AnalysisByDayService extends ServiceImpl<AnalysisByDayMapper, Analy
         this.getBaseMapper().updateById(analysisByDay);
 
     }
+
+    public ResponseEntity<Object> findAddUser(Long sd, Long ed, Integer type) {
+     /*   //获取前端传过来的开始时间和结束时间
+        DateTime startDate = DateUtil.date(sd);
+        DateTime endDate = DateUtil.date(ed);
+        //创建一个vo类
+        AnalysisUserVo analysisUserVo = new AnalysisUserVo();
+
+        //设置今年数据
+        analysisUserVo.setThisYear(this.queryDataPointVos(startDate, endDate, type));
+
+        //设置去年数据
+        analysisUserVo.setLastYear(this.queryDataPointVos(
+
+                DateUtil.offset(startDate, DateField.YEAR, -1),
+
+                DateUtil.offset(endDate, DateField.YEAR, -1),
+
+                type)
+
+        );
+        return ResponseEntity.ok(analysisUserVo);
+    }
+
+    private List<DateVo> queryDataPointVos(DateTime sd, DateTime ed, Integer type) {
+        //将类型转成String类型
+        String startDate = sd.toDateStr();
+        String endDate = ed.toDateStr();
+        //定义一个空字符来接收字段
+        String column = null;
+        switch (type) {//101 新增 102 活跃用户 103 次日留存率
+            case 101:
+                column = "num_registered";
+                break;
+            case 102:
+                column = "num_active";
+                break;
+            case 103:
+                column = "num_retention1d";
+                break;
+        }
+
+        List<AnalysisByDay> analysisByDayList = super.list(Wrappers.<AnalysisByDay>query()
+
+                .select("record_date , " + column + " as num_active")
+
+                .ge("record_date", startDate)
+
+                .le("record_date", endDate));
+
+        return analysisByDayList.stream()
+
+                .map(analysisByDay -> new DateVo(DateUtil.date(analysisByDay.getRecordDate()).toDateStr(), (int) analysisByDay.getNumActive().longValue()))
+
+                .collect(Collectors.toList());
+
+    }*/
+        //今年开始时间
+        Date nowS = new Date(sd);
+        //今年结束时间
+        Date nowE = new Date(ed);
+
+        //去年开始时间
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(nowS);
+        calendar.add(Calendar.YEAR, -1);
+        Date lastS = calendar.getTime();
+        //去年结束时间
+        calendar.setTime(nowE);
+        calendar.add(Calendar.YEAR, -1);
+        Date lastE = calendar.getTime();
+
+
+        //创建一个List集合来接收
+        List<AnalysisSummaryVo> analysisByDayVosNow = new ArrayList<>();
+        List<AnalysisSummaryVo> analysisByDayVosLast = new ArrayList<>();
+
+        //计算开始和结束时间之间有多少天
+        long days = (ed - sd) / (1000 * 60 * 60 * 24);
+        //设置今年开始时间
+        calendar.setTime(nowS);
+        for (long i = 0; i <= days; i++) {
+            //创建vo对象
+            AnalysisSummaryVo analysisByDayVo = new AnalysisSummaryVo();
+            //获取日期时间
+            Date date = calendar.getTime();
+            String dateS = new SimpleDateFormat("yyyy-MM-dd").format(date);
+            //封装回vo类中
+            analysisByDayVo.setTitle(dateS);
+            //根据数据库字段查询日期
+            AnalysisByDay analysisByDay = query().eq("record_date", dateS).one();
+            //判断analysisByDay不等于空
+            if (analysisByDay != null) {
+                //判断type为101，设置他的新增人数
+                if (type == 101) {
+                    analysisByDayVo.setAmount(analysisByDay.getNumRegistered());
+                    //判断type为102，设置他的活跃人数
+                } else if (type == 102) {
+                    analysisByDayVo.setAmount(analysisByDay.getNumActive());
+                    //判断type为103，设置他的次日留存人数
+                } else if (type == 103) {
+                    analysisByDayVo.setAmount(analysisByDay.getNumRetention1d());
+                }
+            }
+            //添加vo到一个新的List集合中
+            analysisByDayVosNow.add(analysisByDayVo);
+            //每次循环完，让天数自动加一
+            calendar.add(Calendar.DATE, 1);
+        }
+
+        //设置去年的开始时间
+        calendar.setTime(lastS);
+        for (long i = 0; i <= days; i++) {
+            AnalysisSummaryVo analysisByDayVo = new AnalysisSummaryVo();
+            //获取日期时间
+            Date date = calendar.getTime();
+            String dateS = new SimpleDateFormat("yyyy-MM-dd").format(date);
+            //封装回vo类中
+            analysisByDayVo.setTitle(dateS);
+
+            AnalysisByDay analysisByDay = query().eq("record_date", dateS).one();
+            if (analysisByDay != null) {
+                //判断type为101，设置他的新增人数
+                if (type == 101) {
+                    analysisByDayVo.setAmount(analysisByDay.getNumRegistered());
+                    //判断type为102，设置他的活跃人数
+                } else if (type == 102) {
+                    analysisByDayVo.setAmount(analysisByDay.getNumActive());
+                    //判断type为103，设置他的次日留存人数
+                } else if (type == 103) {
+                    analysisByDayVo.setAmount(analysisByDay.getNumRetention1d());
+                }
+            }
+            //添加vo到一个新的List集合中
+            analysisByDayVosLast.add(analysisByDayVo);
+            //每次循环完，让天数自动加一
+            calendar.add(Calendar.DATE, 1);
+        }
+        //把两个集合封装成map返回
+        HashMap<String, Object> map = new HashMap<>();
+        map.put("thisYear", analysisByDayVosNow);
+        map.put("lastYear", analysisByDayVosLast);
+
+        return ResponseEntity.ok(map);
+    }
 }
+

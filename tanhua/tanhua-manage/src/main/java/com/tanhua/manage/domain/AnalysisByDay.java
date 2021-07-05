@@ -33,4 +33,5 @@ public class AnalysisByDay extends BasePojo {
      * 次日留存用户数
      */
     private Integer numRetention1d = 0;
+
 }

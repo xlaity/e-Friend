@@ -3,8 +3,7 @@ package com.tanhua.manage.service;
 
 import cn.hutool.crypto.SecureUtil;
 import com.alibaba.fastjson.JSON;
-import com.baomidou.mybatisplus.core.conditions.Wrapper;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tanhua.manage.domain.Admin;
 import com.tanhua.manage.exception.BusinessException;
