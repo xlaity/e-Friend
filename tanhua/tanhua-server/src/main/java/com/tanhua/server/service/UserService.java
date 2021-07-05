@@ -1,4 +1,6 @@
 package com.tanhua.server.service;
+import com.tanhua.domain.vo.*;
+import org.bson.types.ObjectId;
 
 import com.alibaba.fastjson.JSON;
 import com.tanhua.commons.templates.AipFaceTemplate;
@@ -7,10 +9,7 @@ import com.tanhua.commons.templates.OssTemplate;
 import com.tanhua.commons.templates.SmsTemplate;
 import com.tanhua.domain.db.User;
 import com.tanhua.domain.db.UserInfo;
-import com.tanhua.domain.vo.ErrorResult;
-import com.tanhua.domain.vo.PageResult;
-import com.tanhua.domain.vo.UserInfoVo;
-import com.tanhua.domain.vo.UserLikeVo;
+import com.tanhua.domain.mongo.UserLike;
 import com.tanhua.dubbo.api.FriendApi;
 import com.tanhua.dubbo.api.UserApi;
 import com.tanhua.dubbo.api.UserInfoApi;
@@ -428,6 +427,41 @@ public class UserService {
         // 3.注册好友关系到环信 （喜欢的用户、登陆的用户要先在环信注册）
         huanXinTemplate.contactUsers(UserHolder.getUserId(), uid);
 
+        return ResponseEntity.ok(null);
+    }
+
+    //桃花传音喜欢不喜欢
+    public ResponseEntity<Object> love(Long id) {
+        Long userId = UserHolder.getUserId();
+        //首先查询shi好友表是否有
+       UserLike fid =  userLikeApi.findUser(id,userId);
+       //说明他喜欢的好人中没有我 我 就要添加喜欢到我的列表中
+       if(fid==null){
+           UserLike userLike = new UserLike();
+           userLike.setId(new ObjectId());
+           userLike.setUserId(userId);
+           userLike.setLikeUserId(id);
+           userLike.setCreated(System.currentTimeMillis());
+           userLikeApi.save(userLike);
+       }else {
+           UserLike userLike = new UserLike();
+           userLike.setId(new ObjectId());
+           userLike.setUserId(userId);
+           userLike.setLikeUserId(id);
+           userLike.setCreated(System.currentTimeMillis());
+           userLikeApi.save(userLike);
+           //并且添加朋友关系
+           friendApi.save(id,userId);
+           friendApi.save(userId,id);
+       }
+       return ResponseEntity.ok(null);
+    }
+
+    //删除桃花传音语言
+    public ResponseEntity<Object> unlove(Long id) {
+        //直接删除缓存的数据
+        String str  =  "user_info_"+id;
+        redisTemplate.delete(str);
         return ResponseEntity.ok(null);
     }
 }

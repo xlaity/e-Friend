@@ -89,4 +89,10 @@ public class UserController {
         log.info("接口名称：新用户---2选取头像");
         return userService.updateUserHead(headPhoto);
     }
+
+    @GetMapping("{id}/love")
+    public ResponseEntity<Object> love(@PathVariable Integer id){
+        log.info("传入的id+"+id);
+        return null;
+    }
 }

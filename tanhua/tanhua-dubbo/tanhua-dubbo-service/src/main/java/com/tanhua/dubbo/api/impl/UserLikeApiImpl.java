@@ -163,4 +163,17 @@ public class UserLikeApiImpl implements UserLikeApi {
                 .and("likeUserId").is(userId));
         mongoTemplate.remove(query, UserLike.class);
     }
+
+    //查询喜欢列表
+    @Override
+    public UserLike findUser(Long id , Long userId) {
+        Query query = new Query(Criteria.where("userId").is(id).and("likeUserId").is(userId));
+        UserLike one = mongoTemplate.findOne(query, UserLike.class);
+        return one;
+    }
+    //添加喜欢
+    @Override
+    public void save(UserLike userLike) {
+        mongoTemplate.save(userLike,"user_like");
+    }
 }

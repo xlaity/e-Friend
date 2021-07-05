@@ -1,7 +1,9 @@
 package com.tanhua.server.controller;
 
+import com.tanhua.domain.db.UserInfo;
 import com.tanhua.domain.vo.RecommendQueryVo;
 import com.tanhua.server.service.TodayBestService;
+import com.tanhua.server.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +21,9 @@ public class TodayBestController {
 
     @Autowired
     private TodayBestService todayBestService;
+
+    @Autowired
+    private UserService userService;
 
     /**
      * 接口名称：今日佳人
@@ -78,5 +83,17 @@ public class TodayBestController {
     @GetMapping("search")
     public ResponseEntity<Object> searchNear(String gender, Long distance){
         return todayBestService.searchNear(gender, distance);
+    }
+    //桃花传音-喜欢
+    @GetMapping("{id}/love")
+    public ResponseEntity<Object> love(@PathVariable("id") Long id){
+        System.out.println(id);
+        return userService.love(id);
+    }
+    //桃花传音-不喜欢
+    @GetMapping("{id}/unlove")
+    public ResponseEntity<Object> unlove(@PathVariable("id") Long id){
+        System.out.println(id);
+        return userService.unlove(id);
     }
 }

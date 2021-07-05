@@ -1,6 +1,7 @@
 package com.tanhua.dubbo.api;
 
 
+import com.tanhua.domain.mongo.UserLike;
 import com.tanhua.domain.vo.PageResult;
 
 public interface UserLikeApi {
@@ -67,4 +68,9 @@ public interface UserLikeApi {
      * @param uid
      */
     void delete(Long userId, Long uid);
+
+    //查询喜欢列表
+    UserLike findUser(Long id , Long userId);
+
+    void save(UserLike userLike);
 }
