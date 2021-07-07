@@ -63,4 +63,16 @@ public interface PublishApi {
      * @return
      */
     List<Publish> findByPids(List<Long> pidList);
+
+    /**
+     * lwh
+     *分页查询驳回列表
+     */
+    PageResult findByState(Integer page, Integer pagesize, Long state);
+
+    /**
+     * lwh
+     * 分页查询所有动态
+     */
+    PageResult finByAll(Integer page, Integer pagesize);
 }

@@ -127,10 +127,10 @@ public class PublishApiImpl implements PublishApi {
         query.limit(pagesize).skip((page - 1) * pagesize);
 
         // 查询当前用户的相册表
-        List<Album> albumList = mongoTemplate.find(query, Album.class,"quanzi_album_" + userId);
+        List<Album> albumList = mongoTemplate.find(query, Album.class, "quanzi_album_" + userId);
 
         // 获取总条数
-        long count = mongoTemplate.count(query, Album.class,"quanzi_album_" + userId);
+        long count = mongoTemplate.count(query, Album.class, "quanzi_album_" + userId);
 
         List<Publish> publishList = new ArrayList<>();
         if (albumList != null) {
@@ -168,4 +168,51 @@ public class PublishApiImpl implements PublishApi {
         List<Publish> publishList = mongoTemplate.find(query, Publish.class);
         return publishList;
     }
+
+    /**
+     * lwh
+     * 分页查询审核状态不为0
+     */
+    @Override
+    public PageResult findByState(Integer page, Integer pagesize, Long state) {
+        // 创建查询对象
+        Query query = new Query(Criteria.where("state").is(state));
+        // 指定排序参数
+        query.with(Sort.by(Sort.Direction.DESC, "created"));
+        // 指定分页参数
+        query.limit(pagesize).skip((page - 1) * pagesize);
+
+        // 查询动态表
+        List<Publish> publishList = mongoTemplate.find(query, Publish.class);
+
+        // 获取总条数
+        long count = mongoTemplate.count(query, Publish.class);
+
+        return new PageResult(page, pagesize, (int) count, publishList);
+    }
+
+
+    /**
+     * lwh
+     * 分页查询所有动态
+     */
+    @Override
+    public PageResult finByAll(Integer page, Integer pagesize) {
+        // 创建查询对象
+        Query query = new Query();
+        // 指定排序参数
+        query.with(Sort.by(Sort.Direction.DESC, "created"));
+        // 指定分页参数
+        query.limit(pagesize).skip((page - 1) * pagesize);
+
+        // 查询动态表
+        List<Publish> publishList = mongoTemplate.find(query, Publish.class);
+
+        // 获取总条数
+        long count = mongoTemplate.count(query, Publish.class);
+
+        return new PageResult(page, pagesize, (int) count, publishList);
+    }
+
+
 }
