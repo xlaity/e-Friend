@@ -54,6 +54,7 @@ public class VideoService {
     private VideoMqService videoMqService;
 
     /**
+     *冯伟鑫（修改：增加视频点赞标志）
      * 接口名称：小视频列表
      */
     public PageResult queryVideoList(Integer page, Integer pagesize) {
@@ -97,6 +98,15 @@ public class VideoService {
                 } else {
                     vo.setHasFocus(0);
                 }
+
+                String likeKey = "public_like_video_" + UserHolder.getUserId() + "_" + video.getId();
+                if(redisTemplate.hasKey(likeKey)){
+                    vo.setHasLiked(1);
+                }else {
+                    vo.setHasLiked(0);
+                }
+
+
                 vo.setHasLiked(0);
 
                 // 2.3 添加vo到集合

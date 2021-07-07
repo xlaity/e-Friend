@@ -79,4 +79,37 @@ public class TodayBestController {
     public ResponseEntity<Object> searchNear(String gender, Long distance){
         return todayBestService.searchNear(gender, distance);
     }
+
+
+    /*
+    * 冯伟鑫（增加）
+    * 接口名称：探花-左滑右滑
+    * 接口路径：GET/tanhua/cards
+    */
+    @GetMapping("/cards")
+    public ResponseEntity<Object> getCards(){
+        return todayBestService.getCards();
+    }
+
+
+    /*
+    * 冯伟鑫（增加）
+    * 接口名称：探花-喜欢
+    * 接口路径：GET/tanhua/:id/love
+   */
+    @GetMapping("/{id}/love")
+    public ResponseEntity<Object> addLove(@PathVariable("id") Long likeUserId){
+        return todayBestService.addLike(likeUserId);
+    }
+
+
+    /*
+    * 冯伟鑫（增加）
+    * 接口名称：探花-不喜欢
+    * 接口路径：GET/tanhua/:id/unlove
+    */
+    @GetMapping("/{id}/unlove")
+    public ResponseEntity<Object> unLove(@PathVariable("id") Long likeUserId){
+        return todayBestService.removeLike(likeUserId);
+    }
 }

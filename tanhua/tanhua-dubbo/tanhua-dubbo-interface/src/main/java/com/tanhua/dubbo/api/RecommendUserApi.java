@@ -4,6 +4,9 @@ package com.tanhua.dubbo.api;
 import com.tanhua.domain.mongo.RecommendUser;
 import com.tanhua.domain.vo.PageResult;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public interface RecommendUserApi {
 
     /**
@@ -29,4 +32,16 @@ public interface RecommendUserApi {
      * @return
      */
     long queryScore(Long userId, Long recommentUserId);
+
+    /**
+     * @param userId
+     * @return
+     */
+    List<RecommendUser> queryRecommendUser(Long userId);
+
+    /**
+     * @param userId
+     * @param likeUserId
+     */
+    void delete(Long userId, Long likeUserId);
 }

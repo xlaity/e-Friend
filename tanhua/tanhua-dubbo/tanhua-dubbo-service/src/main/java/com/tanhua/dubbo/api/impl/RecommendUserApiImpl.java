@@ -67,5 +67,22 @@ public class RecommendUserApiImpl implements RecommendUserApi {
         return recommendUser.getScore().longValue();
     }
 
+    /*
+    * 冯伟鑫（增加）
+    * */
+    @Override
+    public List<RecommendUser> queryRecommendUser(Long userId) {
+        Query query = new Query(Criteria.where("userId").is(userId));
+        query.limit(50);
+        //查询50条推荐用户
+        List<RecommendUser> recommendUsers = mongoTemplate.find(query, RecommendUser.class);
 
+        return recommendUsers;
+    }
+
+    @Override
+    public void delete(Long userId, Long likeUserId) {
+        Query query = new Query(Criteria.where("userId").is(userId).and("recommendUserId").is(likeUserId));
+        mongoTemplate.remove(query,RecommendUser.class);
+    }
 }

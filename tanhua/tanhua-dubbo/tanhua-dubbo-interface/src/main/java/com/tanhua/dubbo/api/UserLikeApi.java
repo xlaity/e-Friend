@@ -1,6 +1,7 @@
 package com.tanhua.dubbo.api;
 
 
+import com.tanhua.domain.mongo.UserLike;
 import com.tanhua.domain.vo.PageResult;
 
 public interface UserLikeApi {
@@ -61,10 +62,29 @@ public interface UserLikeApi {
      */
     PageResult queryVisitorList(Long userId, Integer page, Integer pagesize);
 
+
     /**
      * 删除粉丝数据
      * @param userId
      * @param uid
      */
     void delete(Long userId, Long uid);
+
+    /**
+     * @param userLike
+     */
+    void addFans(UserLike userLike);
+
+    /**
+     * @param userId
+     * @param uid
+     */
+    void deleteLike(Long userId, Long uid);
+
+    /**
+     * @param userId
+     * @param likeUserId
+     * @return
+     */
+    boolean isFans(Long userId, Long likeUserId);
 }

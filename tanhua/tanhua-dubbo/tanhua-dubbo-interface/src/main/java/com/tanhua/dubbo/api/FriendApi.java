@@ -21,4 +21,19 @@ public interface FriendApi {
      * @return
      */
     PageResult queryContractList(Integer page, Integer pagesize, String keyword, Long userId);
+
+    /**
+     *
+     * @param uid
+     * @param userId
+     * @return
+     */
+    Boolean isFriend(Long uid, Long userId);
+
+    /**
+     *
+     * @param uid
+     * @param userId
+     */
+    void delete(Long uid, Long userId);
 }

@@ -252,6 +252,7 @@ public class MovementsService {
     }
 
     /**
+     * 冯伟鑫（修改：comment需要给publishUserId字段传值，否则消息列表无法正常显示）
      * 接口名称：动态-点赞
      */
     public ResponseEntity<Object> likeComment(String id) {
@@ -262,6 +263,10 @@ public class MovementsService {
         comment.setPubType(1);
         comment.setUserId(UserHolder.getUserId());
         comment.setCreated(System.currentTimeMillis());
+
+        //根据动态id查询发布动态者id
+        Publish publish = publishApi.findById(id);
+        comment.setPublishUserId(publish.getUserId());
 
         // 2.调用服务提供者api操作mongo, 往评论表插入数据、修改动态表的点赞数，并返回点赞数
         long count = commentApi.save(comment);
@@ -294,6 +299,9 @@ public class MovementsService {
         String key = "public_like_comment_" + UserHolder.getUserId() + "_" + id;
         redisTemplate.delete(key);
 
+        // 【发送消息至MQ-计算评分数据】
+        movementsMQService.disLikePublishMsg(id);
+
         return ResponseEntity.ok(count);
     }
 
@@ -310,12 +318,19 @@ public class MovementsService {
         comment.setUserId(UserHolder.getUserId());
         comment.setCreated(System.currentTimeMillis());
 
+        //根据动态id查询发布动态者id
+        Publish publish = publishApi.findById(id);
+        comment.setPublishUserId(publish.getUserId());
+
         // 2.调用服务提供者api操作mongo, 往评论表插入数据、修改动态表的喜欢数，并返回喜欢数
         long count = commentApi.save(comment);
 
         // 3.存储喜欢的标记到redis中
         String key = "public_love_comment_" + UserHolder.getUserId() + "_" + id;
         redisTemplate.opsForValue().set(key, "xxx");
+
+        // 【发送消息至MQ-计算评分数据】
+        movementsMQService.lovePublishMsg(id);
 
         return ResponseEntity.ok(count);
     }
@@ -337,6 +352,9 @@ public class MovementsService {
         // 3.删除喜欢的标记
         String key = "public_love_comment_" + UserHolder.getUserId() + "_" + id;
         redisTemplate.delete(key);
+
+        // 【发送消息至MQ-计算评分数据】
+        movementsMQService.disLovePublishMsg(id);
 
         return ResponseEntity.ok(count);
     }

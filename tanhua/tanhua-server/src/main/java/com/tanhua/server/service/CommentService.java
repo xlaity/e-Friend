@@ -3,15 +3,21 @@ package com.tanhua.server.service;
 
 import com.tanhua.domain.db.UserInfo;
 import com.tanhua.domain.mongo.Comment;
+import com.tanhua.domain.mongo.Publish;
+import com.tanhua.domain.mongo.Video;
 import com.tanhua.domain.vo.CommentVo;
 import com.tanhua.domain.vo.PageResult;
 import com.tanhua.dubbo.api.CommentApi;
+import com.tanhua.dubbo.api.PublishApi;
 import com.tanhua.dubbo.api.UserInfoApi;
+import com.tanhua.dubbo.api.VideoApi;
 import com.tanhua.server.interceptor.UserHolder;
 import org.apache.dubbo.config.annotation.Reference;
 import org.bson.types.ObjectId;
 import org.joda.time.DateTime;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -26,6 +32,21 @@ public class CommentService {
 
     @Reference
     private UserInfoApi userInfoApi;
+
+    @Reference
+    private PublishApi publishApi;
+
+    @Reference
+    private VideoApi videoApi;
+
+    @Autowired
+    private RedisTemplate<String, String> redisTemplate;
+
+    @Autowired
+    private VideoMqService videoMqService;
+
+    @Autowired
+    private MovementsMQService movementsMQService;
 
     /**
      * 接口名称：评论列表
@@ -69,21 +90,108 @@ public class CommentService {
     }
 
     /**
+     * 冯伟鑫（修改：增加参数标志对动态还是视频评论）
      * 接口名称：评论-提交
      */
-    public ResponseEntity<Object> saveComments(String movementId, String content) {
+    public ResponseEntity<Object> saveComments(String movementId, String content,Integer pubType) {
         // 1.创建评论对象
         Comment comment = new Comment();
         comment.setPublishId(new ObjectId(movementId));
         comment.setCommentType(2);
-        comment.setPubType(1);
+        comment.setPubType(pubType);
         comment.setContent(content);
         comment.setUserId(UserHolder.getUserId());
         comment.setCreated(System.currentTimeMillis());
+
+        if(pubType == 1){
+            //根据动态id查询发布动态者id（只有插入发布动态者id消息列表才能正常显示）
+            Publish publish = publishApi.findById(movementId);
+            comment.setPublishUserId(publish.getUserId());
+            //【圈子相关操作计分】
+            movementsMQService.commentPublishMsg(comment.getPublishId().toString());
+        }else if(pubType == 2){
+            //根据视频id查询发布动态者id
+            Video video = videoApi.findById(movementId);
+            comment.setPublishUserId(video.getUserId());
+            //【视频相关操作计分】
+            videoMqService.commentVideoMsg(comment.getPublishId().toString());
+        }
 
         // 2.调用服务提供者api操作mongo, 往评论表插入数据、修改动态表的评论数
         commentApi.save(comment);
 
         return ResponseEntity.ok(null);
+    }
+
+    /**
+     * 冯伟鑫（增加）
+     * 接口名称：视频点赞
+     */
+    public ResponseEntity<Object> likeComment(String id) {
+        Long userId = UserHolder.getUserId();
+
+        Comment comment = new Comment();
+        comment.setId(new ObjectId());
+        comment.setPublishId(new ObjectId(id));
+        comment.setUserId(userId);
+        comment.setCommentType(1);
+        comment.setPubType(2);
+        comment.setCreated(System.currentTimeMillis());
+        //根据视频id查询发布动态者id
+        Video video = videoApi.findById(id);
+        comment.setPublishUserId(video.getUserId());
+
+        long count = commentApi.save(comment);
+
+        // 保存哪一个用户对哪个视频进行点赞的记录
+        String key = "public_like_video_" + UserHolder.getUserId() + "_" + id;
+        redisTemplate.opsForValue().set(key, "have");
+
+        //【视频相关操作计分】
+        videoMqService.likeVideoMsg(comment.getPublishId().toString());
+
+        return ResponseEntity.ok(count);
+    }
+
+    /**
+     * 冯伟鑫（增加）
+     * 接口名称：取消视频点赞
+     */
+    public ResponseEntity<Object> dislikeComment(String id) {
+        Long userId = UserHolder.getUserId();
+        Comment comment = new Comment();
+        comment.setPublishId(new ObjectId(id));
+        comment.setPubType(2);
+        comment.setUserId(userId);
+        comment.setCommentType(1);
+
+        Long count = commentApi.delete(comment);
+
+        //保存标志信息
+        String key = "public_like_video_" + UserHolder.getUserId() + "_" + id;
+        redisTemplate.delete(key);
+
+        //【视频相关操作计分】
+        videoMqService.disLikeVideoMsg(comment.getPublishId().toString());
+
+        return ResponseEntity.ok(count);
+    }
+
+    /**
+     * 冯伟鑫（增加）
+     * 接口名称：对评论的点赞和取消点赞
+     */
+    public ResponseEntity<Object> Content(String id,Integer flag) {
+
+        long count =  commentApi.updateComment(id,flag);
+
+        String key = "like_" + UserHolder.getUserId() + "_" + id;
+        if(flag==1){
+            redisTemplate.opsForValue().set(key,"have");
+        }else {
+            redisTemplate.delete(key);
+        }
+
+        return ResponseEntity.ok(count);
     }
 }

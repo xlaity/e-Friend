@@ -2,6 +2,7 @@ package com.tanhua.server.controller;
 
 
 import com.tanhua.domain.db.UserInfo;
+import com.tanhua.server.service.TodayBestService;
 import com.tanhua.server.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +19,9 @@ public class UserInfoController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private TodayBestService todayBestService;
 
     /**
      * 接口名称：用户资料 - 读取
@@ -69,5 +73,27 @@ public class UserInfoController {
     @PostMapping("/fans/{uid}")
     public ResponseEntity<Object> fansLike(@PathVariable Long uid){
         return userService.fansLike(uid);
+    }
+
+
+    /*
+    * 冯伟鑫（增加）
+    * 接口名称：喜欢 - 取消
+    * 接口路径：DELETE/users/like/:uid
+    */
+    @DeleteMapping("/like/{uid}")
+    public ResponseEntity<Object> removeLike(@PathVariable Long uid){
+        return todayBestService.removeLike(uid);
+    }
+
+
+    /*
+    * 冯伟鑫（增加）
+    * 接口名称：是否喜欢（新增接口）
+    * 接口路径：GET/users/:uid/alreadyLove
+    */
+    @GetMapping("/{uid}/alreadyLove")
+    public ResponseEntity<Object> isLove(@PathVariable long uid){
+        return ResponseEntity.ok(true);
     }
 }
