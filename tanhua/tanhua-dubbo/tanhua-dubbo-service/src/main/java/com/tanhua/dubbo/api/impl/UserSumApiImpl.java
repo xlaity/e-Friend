@@ -9,6 +9,8 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 
+import java.util.List;
+
 /**
  * @program: tanhua-group9
  * @create: 2021-07-03 12:18
@@ -52,9 +54,11 @@ public class UserSumApiImpl implements UserSumApi {
     @Override
     public void updateTimes() {
         Query query = new Query();
-        Update update = new Update();
-        update.set("userNum",10);
-        mongoTemplate.updateFirst(query,update,UserSum.class);
+        List<UserSum> userSums = mongoTemplate.find(query, UserSum.class);
+        for (UserSum userSum : userSums) {
+            userSum.setUserNum(10);
+            mongoTemplate.save(userSum);
+        }
     }
 
     //保存数据
