@@ -1,0 +1,14 @@
+server:
+  port: 18082
+spring:
+  data:
+    mongodb:
+      uri: mongodb://192.168.12.160:27017/tanhua
+dubbo:
+  application:
+    name: tanhua-recommend
+  registry:
+    address: zookeeper://192.168.12.160:2181
+
+rocketmq:
+  name-server: 192.168.12.160:9876
