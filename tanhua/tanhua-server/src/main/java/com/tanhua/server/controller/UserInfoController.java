@@ -77,7 +77,6 @@ public class UserInfoController {
 
 
     /*
-    * 冯伟鑫（增加）
     * 接口名称：喜欢 - 取消
     * 接口路径：DELETE/users/like/:uid
     */
@@ -88,7 +87,6 @@ public class UserInfoController {
 
 
     /*
-    * 冯伟鑫（增加）
     * 接口名称：是否喜欢（新增接口）
     * 接口路径：GET/users/:uid/alreadyLove
     */

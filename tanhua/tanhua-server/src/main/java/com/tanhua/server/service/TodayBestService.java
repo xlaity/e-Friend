@@ -254,13 +254,16 @@ public class TodayBestService {
             }
         }
 
+        //创建封装类集合
         List<TodayBestVo> todayBestVos = new ArrayList<>();
 
+        //遍历用户id集合，查询用户信息封装
         for (Long userId : userIdList) {
             TodayBestVo todayBestVo = new TodayBestVo();
-
+            //查询用户id
             UserInfo userInfo = userInfoApi.findById(userId);
             if(userInfo!=null){
+                //封装
                 BeanUtils.copyProperties(userInfo,todayBestVo);
                 if(userInfo.getTags()!=null){
                     todayBestVo.setTags(userInfo.getTags().split(","));
@@ -279,8 +282,10 @@ public class TodayBestService {
      * 接口名称：喜欢粉丝
      */
     public ResponseEntity<Object> fansLike(Long fansId) {
+        //删除粉丝信息
         userLikeApi.delete(UserHolder.getUserId(),fansId);
 
+        //添加互相喜欢信息
         friendApi.save(UserHolder.getUserId(),fansId);
 
         /*注册好友关系到环信 （喜欢的用户、登陆的用户要先在环信注册）*/
@@ -300,6 +305,7 @@ public class TodayBestService {
             return ResponseEntity.ok(null);
         }
 
+        //如果喜欢的人是自己粉丝，调用粉丝喜欢方法
         if(userLikeApi.isFans(UserHolder.getUserId(),likeUserId)){
             //喜欢的人也喜欢你则删除粉丝信息，添加朋友信息
             fansLike(likeUserId);
@@ -309,13 +315,13 @@ public class TodayBestService {
             userLike.setUserId(UserHolder.getUserId());
             userLike.setLikeUserId(likeUserId);
             userLike.setCreated(System.currentTimeMillis());
-
             userLikeApi.addFans(userLike);
         }
 
         //删除推荐信息
         recommendUserApi.delete(UserHolder.getUserId(),likeUserId);
 
+        //存储喜欢标志
         String key = "tanhua_like_"+UserHolder.getUserId()+"_"+likeUserId;
         redisTemplate.opsForValue().set(key,"have");
 
@@ -328,18 +334,18 @@ public class TodayBestService {
      * 接口名称：探花-不喜欢
      */
     public ResponseEntity<Object> removeLike(Long uid) {
-        //判断是否是朋友
+        //判断是否是互相喜欢
         Boolean isFriend = friendApi.isFriend(uid,UserHolder.getUserId());
 
         if(isFriend){
-            //是朋友删除朋友信息
+            //是互相喜欢删除互相喜欢信息
             friendApi.delete(uid,UserHolder.getUserId());
 
             UserLike userLike = new UserLike();
             userLike.setUserId(uid);
             userLike.setLikeUserId(UserHolder.getUserId());
             userLike.setCreated(System.currentTimeMillis());
-            //添加粉丝信息
+            //添加喜欢信息
             userLikeApi.addFans(userLike);
         }else {
             //不是朋友，删除喜欢信息

@@ -76,5 +76,48 @@ public class RelativeDateFormat {
  
     private static long toYears(long date) {
         return toMonths(date) / 365L;
-    } 
+    }
+
+
+    /**
+     * 毫秒数转换成天时分秒
+     *
+     * @param milliseconds
+     */
+    public static String millisecondsConvertToDHMS(long milliseconds) {
+        String daysStr;
+        String hoursStr;
+        String minutesStr;
+        String secondsStr;
+        //天
+        long day = (milliseconds / 1000) / (24 * 3600);
+        if (day < 10) {
+            daysStr = "0" + day;
+        } else {
+            daysStr = day + "";
+        }
+        //时
+        long hour = ((milliseconds / 1000) % (24 * 3600)) / 3600;
+        if (hour < 10) {
+            hoursStr = "0" + hour;
+        } else {
+            hoursStr = hour + "";
+        }
+        //分
+        long minute = ((milliseconds / 1000) % 3600) / 60;
+        if (minute < 10) {
+            minutesStr = "0" + minute;
+        } else {
+            minutesStr = minute + "";
+        }
+        //秒
+        long second = (milliseconds / 1000) % 60;
+        if (second < 10) {
+            secondsStr = "0" + second;
+        } else {
+            secondsStr = second + "";
+        }
+
+        return daysStr+"天"+hoursStr+"时"+minutesStr+"分"+secondsStr+"秒";
+    }
 }

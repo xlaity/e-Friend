@@ -1,28 +1,27 @@
 package com.tanhua.manage.service;
 
+import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.tanhua.domain.db.Ops;
 import com.tanhua.domain.db.UserInfo;
 import com.tanhua.domain.mongo.Comment;
 import com.tanhua.domain.mongo.Publish;
 import com.tanhua.domain.mongo.Video;
-import com.tanhua.domain.vo.CommentVo;
-import com.tanhua.domain.vo.MovementsVo;
-import com.tanhua.domain.vo.PageResult;
-import com.tanhua.domain.vo.VideoVo;
-import com.tanhua.dubbo.api.CommentApi;
-import com.tanhua.dubbo.api.PublishApi;
-import com.tanhua.dubbo.api.UserInfoApi;
-import com.tanhua.dubbo.api.VideoApi;
+import com.tanhua.domain.vo.*;
+import com.tanhua.dubbo.api.*;
 import com.tanhua.manage.utils.RelativeDateFormat;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.dubbo.config.annotation.Reference;
 import org.joda.time.DateTime;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
+import java.time.Duration;
 import java.util.*;
 
 @Service
@@ -40,11 +39,36 @@ public class UserService {
     @Reference
     private CommentApi commentApi;
 
+    @Autowired
+    private RedisTemplate<String,String> redisTemplate;
+
+    @Reference
+    private OpsApi opsApi;
+
     public ResponseEntity<Object> findByPage(Integer page, Integer pagesize) {
         // 1.调用服务提供者分页查询用户列表
         Page<UserInfo> result = userInfoApi.findByPage(page, pagesize);
+
+        ArrayList<UserInfoVo> userInfoVos = new ArrayList<>();
+        List<UserInfo> userInfoList = result.getRecords();
+        if(userInfoList!=null){
+            for (UserInfo userInfo : userInfoList) {
+                UserInfoVo userInfoVo = new UserInfoVo();
+                BeanUtils.copyProperties(userInfo,userInfoVo);
+
+                //判断缓存中是否存在冻结标志，封装返回冻结状态码
+                String key = "FREEZE_"+userInfo.getId();
+                if(redisTemplate.hasKey(key)){
+                    userInfoVo.setUserStatus("2");
+                }else {
+                    userInfoVo.setUserStatus("1");
+                }
+
+                userInfoVos.add(userInfoVo);
+            }
+        }
         // 2.封装返回结果
-        PageResult pageResult = new PageResult(page, pagesize, (int) result.getTotal(), result.getRecords());
+        PageResult pageResult = new PageResult(page, pagesize, (int) result.getTotal(), userInfoVos);
         return ResponseEntity.ok(pageResult);
     }
 
@@ -52,8 +76,19 @@ public class UserService {
      * 接口名称：用户基本资料
      */
     public ResponseEntity<Object> findById(Long userId) {
+        UserInfoVo userInfoVo = new UserInfoVo();
         UserInfo userInfo = userInfoApi.findById(userId);
-        return ResponseEntity.ok(userInfo);
+        BeanUtils.copyProperties(userInfo,userInfoVo);
+
+        //判断缓存中是否存在冻结标志，封装返回冻结状态码
+        String key = "FREEZE_"+userInfo.getId();
+        if(redisTemplate.hasKey(key)){
+            userInfoVo.setUserStatus("2");
+        }else {
+            userInfoVo.setUserStatus("1");
+        }
+
+        return ResponseEntity.ok(userInfoVo);
     }
 
     /**
@@ -107,6 +142,7 @@ public class UserService {
      * 接口名称：动态分页
      */
     public ResponseEntity<Object> findMovementsList(Integer page, Integer pagesize, Long uid, Long state) {
+        //查询单个用户动态
         if (uid != null) {
             // 1.调用服务提供者分页查询该用户的个人动态
             PageResult pageResult = publishApi.queryMyPublishList(page, pagesize, uid);
@@ -274,6 +310,7 @@ public class UserService {
      */
     public ResponseEntity<Object> updatePass(List<String> publishIdList) {
         String message = "false";
+        //遍历修改审核状态信息
         if (publishIdList.size() != 0) {
             for (String publishId : publishIdList) {
                 publishApi.updateState(publishId, 1);
@@ -293,6 +330,7 @@ public class UserService {
      */
     public ResponseEntity<Object> updateReject(List<String> publishIdList) {
         String message = "false";
+        //遍历修改审核状态信息
         if (publishIdList.size() != 0) {
             for (String publishId : publishIdList) {
                 publishApi.updateState(publishId, 2);
@@ -314,6 +352,7 @@ public class UserService {
      */
     public ResponseEntity<Object> revocation(List<String> publishIdList) {
         String message = "false";
+        //遍历修改审核状态信息
         if (publishIdList.size() != 0) {
             for (String publishId : publishIdList) {
                 publishApi.updateState(publishId, 0);
@@ -324,6 +363,51 @@ public class UserService {
         Map<String, String> resultMap = new HashMap<>();
         resultMap.put("message", message);
         return ResponseEntity.ok(resultMap);
+    }
 
+
+    /**
+     * ydj
+     * 用户冻结
+     */
+    public ResponseEntity<Object> accountFreeze(Ops ops) {
+        //存储冻结信息
+        opsApi.accountFreeze(ops);
+
+        //把冻结信息保存在缓存中
+        String key = "FREEZE_"+ops.getUserId();
+        switch (ops.getFreezingTime()){
+            case 1:
+                redisTemplate.opsForValue().set(key, JSON.toJSONString(ops), Duration.ofDays(3));
+
+                break;
+            case 2:
+                redisTemplate.opsForValue().set(key,JSON.toJSONString(ops), Duration.ofDays(7));
+                break;
+            case 3:
+                redisTemplate.opsForValue().set(key,JSON.toJSONString(ops));
+                break;
+            default:
+                break;
+        }
+
+        Map<String, String> map = new HashMap<>();
+        map.put("message","操作成功");
+        return ResponseEntity.ok(map);
+    }
+
+
+    /**
+     * ydj
+     * 用户解冻
+     */
+    public ResponseEntity<Object> accountUnFreeze(Integer userId, String reasonsForThawing) {
+        //从缓存中删除冻结信息
+        String key = "FREEZE_"+userId;
+        redisTemplate.delete(key);
+
+        Map<String, String> map = new HashMap<>();
+        map.put("message","操作成功");
+        return ResponseEntity.ok(map);
     }
 }

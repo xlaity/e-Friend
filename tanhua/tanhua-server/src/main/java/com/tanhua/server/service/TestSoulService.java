@@ -138,7 +138,7 @@ public class TestSoulService {
         String conclusion = this.getConclusion(level);
         testSoulReport.setConclusion(conclusion);
         //统一封面
-        String url = "https://lk-bukect.oss-cn-guangzhou.aliyuncs.com/images/2021/07/03/cefdebc2-f396-4b09-83a4-286c87beac56.jpg";
+        String url = this.getUrl(level);
         testSoulReport.setCover(url);
         //维度值
         List<Dimension> dimensions = this.getDimensions(level);
@@ -150,6 +150,28 @@ public class TestSoulService {
         testSoulApi.updateTestSoulFileUser(reportId, name, UserHolder.getUserId());
         //4、返回报告id
         return reportId;
+    }
+
+    private String getUrl(Integer level) {
+        String url = null;
+        switch (level){
+            case 1:
+                url = "https://tanhua-dev.oss-cn-zhangjiakou.aliyuncs.com/images/test_soul/owl.png";
+                break;
+            case 2:
+                url = "https://tanhua-dev.oss-cn-zhangjiakou.aliyuncs.com/images/test_soul/rabbit.png";
+                break;
+            case 3:
+                url = "https://tanhua-dev.oss-cn-zhangjiakou.aliyuncs.com/images/test_soul/fox.png";
+                break;
+            case 4:
+                url = "https://tanhua-dev.oss-cn-zhangjiakou.aliyuncs.com/images/test_soul/lion.png";
+                break;
+            default:
+                url = null;
+                break;
+        }
+        return url;
     }
 
 
@@ -340,7 +362,7 @@ public class TestSoulService {
         ReportVo vo = new ReportVo();
         BeanUtils.copyProperties(testSoulReport, vo);
         //3、根据对应等级查询最新的5个用户（排除自身）userId
-        List<Long> userIdList = testSoulReportApi.findByLevel(testSoulReport.getLevel(), 5, UserHolder.getUserId(),testSoulReport.getTestSoulFileId());
+        List<Long> userIdList = testSoulReportApi.findByLevel(testSoulReport.getLevel(), 8, UserHolder.getUserId(),testSoulReport.getTestSoulFileId());
         //4、更加userIdList找到对应的用户
         if (userIdList != null && userIdList.size() > 0) {
             List<SimilarYou> similarYous = userInfoApi.findByIdList(userIdList);

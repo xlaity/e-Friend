@@ -1,5 +1,6 @@
 package com.tanhua.domain.vo;
 
+import com.tanhua.domain.db.BasePojo;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -8,7 +9,7 @@ import java.io.Serializable;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserInfoVo implements Serializable {
+public class UserInfoVo extends BasePojo {
 
     private Long id; //用户id
     private String nickname; //昵称
@@ -21,4 +22,6 @@ public class UserInfoVo implements Serializable {
     private String education; //学历
     private String profession; //行业
     private Integer marriage; //婚姻状态
+
+    private String userStatus;
 }

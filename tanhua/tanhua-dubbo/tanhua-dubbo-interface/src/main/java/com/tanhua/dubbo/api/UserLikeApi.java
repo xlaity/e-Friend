@@ -87,4 +87,5 @@ public interface UserLikeApi {
      * @return
      */
     boolean isFans(Long userId, Long likeUserId);
+
 }

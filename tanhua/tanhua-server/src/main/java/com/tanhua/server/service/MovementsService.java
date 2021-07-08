@@ -1,6 +1,8 @@
 package com.tanhua.server.service;
 
+import com.alibaba.fastjson.JSON;
 import com.tanhua.commons.templates.OssTemplate;
+import com.tanhua.domain.db.Ops;
 import com.tanhua.domain.db.UserInfo;
 import com.tanhua.domain.mongo.Comment;
 import com.tanhua.domain.mongo.Publish;
@@ -62,6 +64,28 @@ public class MovementsService {
      */
     public ResponseEntity<Object> saveMovements(Publish publish, MultipartFile[] imageContent) throws Exception {
 
+        String key = "FREEZE_"+UserHolder.getUserId();
+        if(redisTemplate.hasKey(key)){
+            //获得该缓存信息剩余生存时间
+            Long time = redisTemplate.opsForValue().getOperations().getExpire(key);
+            String timeString = RelativeDateFormat.millisecondsConvertToDHMS(time * 1000);
+            //获取缓存值，格式化成Ops对象
+            String value = redisTemplate.opsForValue().get(key);
+            Ops ops = JSON.parseObject(value, Ops.class);
+            //判断冻结范围是否是登陆
+            if (ops.getFreezingRange() == 1) {
+                //判断冻结时间
+                if (ops.getFreezingTime() == 1) {
+                    return ResponseEntity.status(400).body("你已被禁止发表状态3天\n原因：" + ops.getReasonsForFreezing() + "\n剩余：" + timeString);
+                } else if (ops.getFreezingTime() == 2) {
+                    return ResponseEntity.status(400).body("你已被禁止发表状态七天\n原因：" + ops.getReasonsForFreezing() + "\n剩余：" + timeString);
+                } else {
+                    return ResponseEntity.status(400).body("你已被永久禁止发表状态\n原因：" + ops.getReasonsForFreezing());
+                }
+            }
+        }
+
+
         // 1.上传图片信息到OSS
         List<String> urlList = new ArrayList<>();
         if (imageContent != null) {
@@ -115,7 +139,7 @@ public class MovementsService {
 
         // 2.先查询redis中的推荐数据
         PageResult pageResult = findByRecommend(userId, page, pagesize);
-        
+
         if(pageResult == null){
             // 3.调用服务提供者分页查询该用户的推荐动态
             pageResult = publishApi.queryRecommendPublishList(page, pagesize, userId);

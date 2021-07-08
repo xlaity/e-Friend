@@ -1,6 +1,8 @@
 package com.tanhua.server.service;
 
 
+import com.alibaba.fastjson.JSON;
+import com.tanhua.domain.db.Ops;
 import com.tanhua.domain.db.UserInfo;
 import com.tanhua.domain.mongo.Comment;
 import com.tanhua.domain.mongo.Publish;
@@ -12,6 +14,7 @@ import com.tanhua.dubbo.api.PublishApi;
 import com.tanhua.dubbo.api.UserInfoApi;
 import com.tanhua.dubbo.api.VideoApi;
 import com.tanhua.server.interceptor.UserHolder;
+import com.tanhua.server.utils.RelativeDateFormat;
 import org.apache.dubbo.config.annotation.Reference;
 import org.bson.types.ObjectId;
 import org.joda.time.DateTime;
@@ -78,7 +81,13 @@ public class CommentService {
                 // 日期格式转换
                 vo.setCreateDate(new DateTime(comment.getCreated()).toString("yyyy年MM月dd日 HH:mm"));
                 vo.setLikeCount(comment.getLikeCount());
-                vo.setHasLiked(0);
+
+                String key = "like_" + UserHolder.getUserId() + "_" + comment.getPublishId();
+                if(redisTemplate.hasKey(key)){
+                    vo.setHasLiked(1);
+                }else {
+                    vo.setHasLiked(0);
+                }
 
                 // 2.3 添加vo到集合
                 voList.add(vo);
@@ -94,6 +103,27 @@ public class CommentService {
      * 接口名称：评论-提交
      */
     public ResponseEntity<Object> saveComments(String movementId, String content,Integer pubType) {
+        String key = "FREEZE_"+UserHolder.getUserId();
+        if(redisTemplate.hasKey(key)){
+            //获得该缓存信息剩余生存时间
+            Long time = redisTemplate.opsForValue().getOperations().getExpire(key);
+            String timeString = RelativeDateFormat.millisecondsConvertToDHMS(time * 1000);
+            //获取缓存值，格式化成Ops对象
+            String value = redisTemplate.opsForValue().get(key);
+            Ops ops = JSON.parseObject(value, Ops.class);
+            //判断冻结范围是否是登陆
+            if (ops.getFreezingRange() == 1) {
+                //判断冻结时间
+                if (ops.getFreezingTime() == 1) {
+                    return ResponseEntity.status(400).body("你已被禁止发言3天\n原因：" + ops.getReasonsForFreezing() + "\n剩余：" + timeString);
+                } else if (ops.getFreezingTime() == 2) {
+                    return ResponseEntity.status(400).body("你已被禁止发言七天\n原因：" + ops.getReasonsForFreezing() + "\n剩余：" + timeString);
+                } else {
+                    return ResponseEntity.status(400).body("你已被永久禁止发言\n原因：" + ops.getReasonsForFreezing());
+                }
+            }
+        }
+
         // 1.创建评论对象
         Comment comment = new Comment();
         comment.setPublishId(new ObjectId(movementId));
@@ -129,7 +159,7 @@ public class CommentService {
      */
     public ResponseEntity<Object> likeComment(String id) {
         Long userId = UserHolder.getUserId();
-
+        // 1.创建评论对象
         Comment comment = new Comment();
         comment.setId(new ObjectId());
         comment.setPublishId(new ObjectId(id));
@@ -183,6 +213,7 @@ public class CommentService {
      */
     public ResponseEntity<Object> Content(String id,Integer flag) {
 
+        //直接修改评论表
         long count =  commentApi.updateComment(id,flag);
 
         String key = "like_" + UserHolder.getUserId() + "_" + id;

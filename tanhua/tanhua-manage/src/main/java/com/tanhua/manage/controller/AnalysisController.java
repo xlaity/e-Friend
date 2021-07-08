@@ -41,6 +41,6 @@ public class AnalysisController {
         log.info("接口名称：新增、活跃用户、次日留存率");
 
 
-        return analysisByDayService.findAddUser(sd,ed,type);
+        return analysisByDayService.usersData(sd,ed,type);
     }
 }

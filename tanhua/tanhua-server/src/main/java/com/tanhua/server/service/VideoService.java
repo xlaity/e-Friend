@@ -121,6 +121,9 @@ public class VideoService {
     }
 
 
+    /**
+     * 接口名称：视频列表
+     */
     public PageResult findRecommend(Integer page, Integer pagesize, Long userId) {
 
         PageResult result = null;
@@ -194,6 +197,7 @@ public class VideoService {
         return ResponseEntity.ok(null);
     }
 
+
     /**
      * 接口名称：视频用户关注
      */
@@ -214,6 +218,8 @@ public class VideoService {
 
         return ResponseEntity.ok(null);
     }
+
+
     /**
      * 接口名称：视频用户关注 - 取消
      */

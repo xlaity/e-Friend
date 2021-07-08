@@ -1,39 +1,25 @@
 package com.tanhua.manage.service;
 
-import cn.hutool.core.date.DateField;
-import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
-import cn.hutool.core.io.unit.DataUnit;
-import cn.hutool.core.map.MapUtil;
-import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.tanhua.manage.mapper.LogMapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.tanhua.domain.db.UserInfo;
 import com.tanhua.manage.domain.AnalysisByDay;
 import com.tanhua.manage.mapper.AnalysisByDayMapper;
-import com.tanhua.manage.mapper.LogMapper;
 import com.tanhua.manage.utils.ComputeUtil;
 import com.tanhua.manage.vo.AnalysisSummaryVo;
-import com.tanhua.manage.vo.AnalysisUserVo;
-import com.tanhua.manage.vo.DateVo;
-import org.checkerframework.checker.units.qual.A;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 public class AnalysisByDayService extends ServiceImpl<AnalysisByDayMapper, AnalysisByDay> {
 
     @Autowired
     private LogMapper logMapper;
-    @Autowired
-    private AnalysisByDayMapper analysisByDayMapper;
 
     /**
      * 接口名称：概要统计信息
@@ -50,27 +36,38 @@ public class AnalysisByDayService extends ServiceImpl<AnalysisByDayMapper, Analy
         String now = new SimpleDateFormat("yyyy-MM-dd").format(date);
         AnalysisByDay recodeToday = query().eq("record_date", now).one();
         // 今日新增
-        Integer numRegisteredToday = recodeToday.getNumRegistered();
+        Integer numRegisteredToday = 0;
         // 今日活跃
-        Integer numActiveToday = recodeToday.getNumActive();
+        Integer numActiveToday = 0;
         // 今日登录
-        Integer numLoginToday = recodeToday.getNumLogin();
-
+        Integer numLoginToday = 0;
+        if(recodeToday!=null){
+            // 今日新增
+            numRegisteredToday = recodeToday.getNumRegistered();
+            // 今日活跃
+            numActiveToday = recodeToday.getNumActive();
+            // 今日登录
+            numLoginToday = recodeToday.getNumLogin();
+        }
 
         // 3.查询昨日新增、昨日活跃、昨日登录数
         // select * from tb_analysis_by_day where record_date = '2021-03-05'
         AnalysisByDay recodeYes = query().eq("record_date", ComputeUtil.offsetDay(date, -1)).one();
         // 昨日新增
-        Integer numRegisteredYes = recodeYes.getNumRegistered();
+        Integer numRegisteredYes = 0;
         // 昨日活跃
-        Integer numActiveYes = recodeYes.getNumActive();
+        Integer numActiveYes = 0;
         // 昨日登录
-        Integer numLoginYes = recodeYes.getNumLogin();
+        Integer numLoginYes = 0;
+        if (recodeYes != null) {
+            numRegisteredYes = recodeYes.getNumRegistered();
+            numActiveYes = recodeYes.getNumActive();
+            numLoginYes = recodeYes.getNumLogin();
+        }
 
         // 4.查询过去七天活跃、30天活跃数
         Long day7 = this.getBaseMapper().findNumActiveByDate(ComputeUtil.offsetDay(date, -7), now);
         Long day30 = this.getBaseMapper().findNumActiveByDate(ComputeUtil.offsetDay(date, -30), now);
-
 
         // 5.封装返回结果
         AnalysisSummaryVo vo = new AnalysisSummaryVo();
@@ -142,62 +139,8 @@ public class AnalysisByDayService extends ServiceImpl<AnalysisByDayMapper, Analy
 
     }
 
-    public ResponseEntity<Object> findAddUser(Long sd, Long ed, Integer type) {
-     /*   //获取前端传过来的开始时间和结束时间
-        DateTime startDate = DateUtil.date(sd);
-        DateTime endDate = DateUtil.date(ed);
-        //创建一个vo类
-        AnalysisUserVo analysisUserVo = new AnalysisUserVo();
 
-        //设置今年数据
-        analysisUserVo.setThisYear(this.queryDataPointVos(startDate, endDate, type));
-
-        //设置去年数据
-        analysisUserVo.setLastYear(this.queryDataPointVos(
-
-                DateUtil.offset(startDate, DateField.YEAR, -1),
-
-                DateUtil.offset(endDate, DateField.YEAR, -1),
-
-                type)
-
-        );
-        return ResponseEntity.ok(analysisUserVo);
-    }
-
-    private List<DateVo> queryDataPointVos(DateTime sd, DateTime ed, Integer type) {
-        //将类型转成String类型
-        String startDate = sd.toDateStr();
-        String endDate = ed.toDateStr();
-        //定义一个空字符来接收字段
-        String column = null;
-        switch (type) {//101 新增 102 活跃用户 103 次日留存率
-            case 101:
-                column = "num_registered";
-                break;
-            case 102:
-                column = "num_active";
-                break;
-            case 103:
-                column = "num_retention1d";
-                break;
-        }
-
-        List<AnalysisByDay> analysisByDayList = super.list(Wrappers.<AnalysisByDay>query()
-
-                .select("record_date , " + column + " as num_active")
-
-                .ge("record_date", startDate)
-
-                .le("record_date", endDate));
-
-        return analysisByDayList.stream()
-
-                .map(analysisByDay -> new DateVo(DateUtil.date(analysisByDay.getRecordDate()).toDateStr(), (int) analysisByDay.getNumActive().longValue()))
-
-                .collect(Collectors.toList());
-
-    }*/
+    public ResponseEntity<Object> usersData(Long sd, Long ed, Integer type) {
         //今年开始时间
         Date nowS = new Date(sd);
         //今年结束时间

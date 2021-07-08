@@ -1,5 +1,6 @@
 package com.tanhua.manage.controller;
 
+import com.tanhua.domain.db.Ops;
 import com.tanhua.manage.service.UserService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -110,5 +111,27 @@ public class UserController {
     @PostMapping("messages/revocation")
     public ResponseEntity<Object> revocation(@RequestBody List<String> publishIdList) {
         return userService.revocation(publishIdList);
+    }
+
+
+    /*
+    接口名称：用户冻结操作
+    接口路径：POST/manage/users/freeze
+    */
+    @PostMapping("/users/freeze")
+    public ResponseEntity<Object> accountFreeze(@RequestBody Ops ops){
+        return userService.accountFreeze(ops);
+    }
+
+
+    /*
+    接口名称：用户解冻操作
+    接口路径：POST/manage/users/unfreeze
+    */
+    @PostMapping("/users/unfreeze")
+    public ResponseEntity<Object> accountFreeze(@RequestBody Map<String,Object> map){
+        Integer userId = (Integer) map.get("userId");
+        String reasonsForThawing = (String) map.get("reasonsForThawing");
+        return userService.accountUnFreeze(userId,reasonsForThawing);
     }
 }
