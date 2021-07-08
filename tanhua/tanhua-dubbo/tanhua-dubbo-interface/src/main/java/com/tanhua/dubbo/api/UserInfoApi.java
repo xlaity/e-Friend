@@ -2,6 +2,9 @@ package com.tanhua.dubbo.api;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.tanhua.domain.db.UserInfo;
+import com.tanhua.domain.entity.SimilarYou;
+
+import java.util.List;
 
 /**
  * 用户详情服务接口
@@ -33,4 +36,6 @@ public interface UserInfoApi {
      * @return
      */
     public Page<UserInfo> findByPage(Integer page, Integer pageSize);
+
+    List<SimilarYou> findByIdList(List<Long> userIdList);
 }

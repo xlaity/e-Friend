@@ -1,0 +1,42 @@
+server:
+  port: 18083
+
+#配置redis
+spring:
+  datasource:
+    driver-class-name: com.mysql.jdbc.Driver
+    url: jdbc:mysql://127.0.0.1:3306/tanhua-manager?useUnicode=true&characterEncoding=utf8&autoReconnect=true&allowMultiQueries=true&useSSL=false
+    username: root
+    password: root
+  redis:
+    host: 192.168.12.160
+    port: 6379
+dubbo:
+  application:
+    name: tanhua-manage
+  registry:
+    address: zookeeper://192.168.12.160:2181
+
+tanhua:
+  secret: itcast
+  huawei:
+    username: tanhua
+    password: tanhua123
+    project: cn-east-3 # 区域ID
+    domain: hw_008613660605731_01 # 华为云账号
+    # 图片检测内容 politics：是否涉及政治人物的检测，terrorism：是否包含涉政暴恐元素的检测，porn：是否包含涉黄内容元素的检测，ad：是否包含广告的检测（公测特性），all：包含politics、terrorism和porn三种场景的检测
+    cagegoriesImage: politics,terrorism,porn
+    # 文字检测内容 politics：涉政，porn：涉黄，ad：广告，abuse：辱骂，contraband：违禁品，flood：灌水
+    cagegoriesText: politics,porn,ad,abuse,contraband,flood
+
+#mybaits-plus
+mybatis-plus:
+  global-config:
+    db-config:
+      table-prefix: tb_ #数据库表前缀
+      id-type: auto #数据库表主键的策略
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+rocketmq:
+  name-server: 192.168.12.160:9876
