@@ -378,13 +378,15 @@ public class UserService {
         String key = "FREEZE_"+ops.getUserId();
         switch (ops.getFreezingTime()){
             case 1:
+                //封禁3天
                 redisTemplate.opsForValue().set(key, JSON.toJSONString(ops), Duration.ofDays(3));
-
                 break;
             case 2:
+                //封禁7天
                 redisTemplate.opsForValue().set(key,JSON.toJSONString(ops), Duration.ofDays(7));
                 break;
             case 3:
+                //永久封禁
                 redisTemplate.opsForValue().set(key,JSON.toJSONString(ops));
                 break;
             default:

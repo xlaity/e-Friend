@@ -163,6 +163,8 @@ public class AnalysisByDayService extends ServiceImpl<AnalysisByDayMapper, Analy
 
         //计算开始和结束时间之间有多少天
         long days = (ed - sd) / (1000 * 60 * 60 * 24);
+
+        //法一，多次查询数据库，效率较低
         //设置今年开始时间
         calendar.setTime(nowS);
         for (long i = 0; i <= days; i++) {
@@ -194,18 +196,21 @@ public class AnalysisByDayService extends ServiceImpl<AnalysisByDayMapper, Analy
             calendar.add(Calendar.DATE, 1);
         }
 
+
+        //法二
         //设置去年的开始时间
         calendar.setTime(lastS);
+        ArrayList<String> list = new ArrayList<>();
         for (long i = 0; i <= days; i++) {
-            AnalysisSummaryVo analysisByDayVo = new AnalysisSummaryVo();
-            //获取日期时间
-            Date date = calendar.getTime();
-            String dateS = new SimpleDateFormat("yyyy-MM-dd").format(date);
-            //封装回vo类中
-            analysisByDayVo.setTitle(dateS);
+            Date time = calendar.getTime();
+            list.add(new SimpleDateFormat("yyyy-MM-dd").format(time));
+            calendar.add(Calendar.DATE, 1);
+        }
 
-            AnalysisByDay analysisByDay = query().eq("record_date", dateS).one();
-            if (analysisByDay != null) {
+        List<AnalysisByDay> analysisByDayList = query().in("record_date", list).list();
+        for (AnalysisByDay analysisByDay : analysisByDayList) {
+            AnalysisSummaryVo analysisByDayVo = new AnalysisSummaryVo();
+            if(analysisByDay!=null){
                 //判断type为101，设置他的新增人数
                 if (type == 101) {
                     analysisByDayVo.setAmount(analysisByDay.getNumRegistered());
@@ -217,11 +222,11 @@ public class AnalysisByDayService extends ServiceImpl<AnalysisByDayMapper, Analy
                     analysisByDayVo.setAmount(analysisByDay.getNumRetention1d());
                 }
             }
-            //添加vo到一个新的List集合中
+
+            analysisByDayVo.setTitle(analysisByDay.getRecordDate().toString());
             analysisByDayVosLast.add(analysisByDayVo);
-            //每次循环完，让天数自动加一
-            calendar.add(Calendar.DATE, 1);
         }
+
         //把两个集合封装成map返回
         HashMap<String, Object> map = new HashMap<>();
         map.put("thisYear", analysisByDayVosNow);

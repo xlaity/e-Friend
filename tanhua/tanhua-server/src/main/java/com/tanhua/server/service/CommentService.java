@@ -111,8 +111,8 @@ public class CommentService {
             //获取缓存值，格式化成Ops对象
             String value = redisTemplate.opsForValue().get(key);
             Ops ops = JSON.parseObject(value, Ops.class);
-            //判断冻结范围是否是登陆
-            if (ops.getFreezingRange() == 1) {
+            //判断冻结范围是否是发表评论
+            if (ops.getFreezingRange() == 2) {
                 //判断冻结时间
                 if (ops.getFreezingTime() == 1) {
                     return ResponseEntity.status(400).body("你已被禁止发言3天\n原因：" + ops.getReasonsForFreezing() + "\n剩余：" + timeString);

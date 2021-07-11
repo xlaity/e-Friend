@@ -72,15 +72,15 @@ public class MovementsService {
             //获取缓存值，格式化成Ops对象
             String value = redisTemplate.opsForValue().get(key);
             Ops ops = JSON.parseObject(value, Ops.class);
-            //判断冻结范围是否是登陆
-            if (ops.getFreezingRange() == 1) {
+            //判断冻结范围是否是发布动态
+            if (ops.getFreezingRange() == 3) {
                 //判断冻结时间
                 if (ops.getFreezingTime() == 1) {
-                    return ResponseEntity.status(400).body("你已被禁止发表状态3天\n原因：" + ops.getReasonsForFreezing() + "\n剩余：" + timeString);
+                    return ResponseEntity.status(400).body("你已被禁止发布动态3天\n原因：" + ops.getReasonsForFreezing() + "\n剩余：" + timeString);
                 } else if (ops.getFreezingTime() == 2) {
-                    return ResponseEntity.status(400).body("你已被禁止发表状态七天\n原因：" + ops.getReasonsForFreezing() + "\n剩余：" + timeString);
+                    return ResponseEntity.status(400).body("你已被禁止发布动态七天\n原因：" + ops.getReasonsForFreezing() + "\n剩余：" + timeString);
                 } else {
-                    return ResponseEntity.status(400).body("你已被永久禁止发表状态\n原因：" + ops.getReasonsForFreezing());
+                    return ResponseEntity.status(400).body("你已被永久禁止发布动态\n原因：" + ops.getReasonsForFreezing());
                 }
             }
         }

@@ -47,5 +47,5 @@ public class AnalysisSummaryVo {
      */
     private BigDecimal activeUsersTodayRate;
     private String title;//日期
-    private Integer amount;//数量
+    private Integer amount = 0;//数量
 }
